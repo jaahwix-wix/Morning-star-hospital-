@@ -1,0 +1,6 @@
+{
+  "name": "Morning Star Hospital",
+  "description": "Comprehensive hospital management system featuring 24/7 emergency triage, patient EMR control, diagnostic laboratory, capital investment control, pharmacy inventory & dispensation, clinical staff roster with shift-swapping workflow, billing & invoicing linked to appointments and medications, and real-time clinical analytics dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,170 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validation Helpers ---
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.name is string && data.name.size() <= 100 &&
+             data.email is string && data.email.size() <= 150 &&
+             data.role is string && (data.role in ['admin', 'doctor', 'nurse', 'lab_tech', 'patient']);
+    }
+
+    function isValidPatient(data) {
+      return data.fullName is string && data.fullName.size() <= 120 &&
+             data.age is number && data.age >= 0 && data.age <= 150 &&
+             data.gender is string && (data.gender in ['male', 'female', 'other']) &&
+             data.status is string && (data.status in ['admitted', 'outpatient', 'emergency', 'discharged']) &&
+             data.registeredBy is string && data.registeredBy.size() <= 128;
+    }
+
+    function isValidAppointment(data) {
+      return data.patientName is string && data.patientName.size() <= 120 &&
+             data.doctorName is string && data.doctorName.size() <= 120 &&
+             data.department is string && data.department.size() <= 100 &&
+             data.date is string && data.date.size() <= 30 &&
+             data.status is string && (data.status in ['scheduled', 'in_progress', 'completed', 'cancelled']) &&
+             data.createdBy is string && data.createdBy.size() <= 128;
+    }
+
+    function isValidLabTest(data) {
+      return data.patientName is string && data.patientName.size() <= 120 &&
+             data.testName is string && data.testName.size() <= 120 &&
+             data.category is string && (data.category in ['Hematology', 'Parasitology', 'Biochemistry', 'Microbiology', 'Imaging', 'Urinalysis']) &&
+             data.status is string && (data.status in ['pending', 'processing', 'completed', 'critical_flag']) &&
+             data.orderedBy is string && data.orderedBy.size() <= 120 &&
+             data.createdBy is string && data.createdBy.size() <= 128;
+    }
+
+    function isValidTriageEntry(data) {
+      return data.patientName is string && data.patientName.size() <= 120 &&
+             data.priority is string && (data.priority in ['P1_Immediate', 'P2_Urgent', 'P3_Delayed', 'P4_Minor']) &&
+             data.chiefComplaint is string && data.chiefComplaint.size() <= 400 &&
+             data.status is string && (data.status in ['waiting', 'attending', 'transferred_ward', 'discharged']) &&
+             data.createdBy is string && data.createdBy.size() <= 128;
+    }
+
+    function isValidHospitalBed(data) {
+      return data.ward is string && data.ward.size() <= 50 &&
+             data.bedNumber is string && data.bedNumber.size() <= 20 &&
+             data.isOccupied is bool;
+    }
+
+    // --- Collections ---
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(userId) && isValidUserProfile(incoming());
+      allow update: if isSignedIn() && isOwner(userId) && isValidUserProfile(incoming());
+      allow delete: if false;
+    }
+
+    // Patients Collection
+    match /patients/{patientId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(patientId) && isValidPatient(incoming());
+      allow update: if isSignedIn() && isValidId(patientId) && isValidPatient(incoming());
+      allow delete: if isSignedIn() && isValidId(patientId);
+    }
+
+    // Appointments Collection
+    match /appointments/{appointmentId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(appointmentId) && isValidAppointment(incoming());
+      allow update: if isSignedIn() && isValidId(appointmentId) && isValidAppointment(incoming());
+      allow delete: if isSignedIn() && isValidId(appointmentId);
+    }
+
+    // Lab Tests Collection
+    match /lab_tests/{testId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(testId) && isValidLabTest(incoming());
+      allow update: if isSignedIn() && isValidId(testId) && isValidLabTest(incoming());
+      allow delete: if isSignedIn() && isValidId(testId);
+    }
+
+    // Triage Emergency Queue Collection
+    match /triage_queue/{triageId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(triageId) && isValidTriageEntry(incoming());
+      allow update: if isSignedIn() && isValidId(triageId) && isValidTriageEntry(incoming());
+      allow delete: if isSignedIn() && isValidId(triageId);
+    }
+
+    // Hospital Beds Collection
+    match /hospital_beds/{bedId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(bedId) && isValidHospitalBed(incoming());
+      allow update: if isSignedIn() && isValidId(bedId) && isValidHospitalBed(incoming());
+      allow delete: if isSignedIn() && isValidId(bedId);
+    }
+
+    // Hospital Investments Collection
+    match /hospital_investments/{investmentId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(investmentId);
+    }
+
+    // Hospital Pharmacy Collection
+    match /hospital_pharmacy/{itemId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(itemId);
+    }
+
+    // Pharmacy Dispensations Collection
+    match /pharmacy_dispensations/{dispId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(dispId);
+    }
+
+    // Hospital Staff Collection
+    match /hospital_staff/{staffId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(staffId);
+    }
+
+    // Hospital Shift Swaps Collection
+    match /hospital_shift_swaps/{swapId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(swapId);
+    }
+
+    // Hospital Invoices Collection
+    match /hospital_invoices/{invoiceId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(invoiceId);
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

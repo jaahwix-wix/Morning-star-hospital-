@@ -1,0 +1,155 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account profile and role information",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 },
+        "role": { "type": "string", "enum": ["admin", "doctor", "nurse", "lab_tech", "patient"] },
+        "phone": { "type": "string", "maxLength": 30 },
+        "department": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "email", "role"]
+    },
+    "Patient": {
+      "title": "Patient",
+      "description": "Registered patient medical record",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string", "maxLength": 50 },
+        "fullName": { "type": "string", "maxLength": 120 },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "enum": ["male", "female", "other"] },
+        "bloodGroup": { "type": "string", "maxLength": 10 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "emergencyContact": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 200 },
+        "status": { "type": "string", "enum": ["admitted", "outpatient", "emergency", "discharged"] },
+        "assignedDoctor": { "type": "string", "maxLength": 100 },
+        "wardNumber": { "type": "string", "maxLength": 50 },
+        "bedNumber": { "type": "string", "maxLength": 20 },
+        "allergies": { "type": "string", "maxLength": 300 },
+        "chronicConditions": { "type": "string", "maxLength": 300 },
+        "registeredBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fullName", "age", "gender", "status", "registeredBy"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Doctor consultation and clinic appointment",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string", "maxLength": 100 },
+        "patientName": { "type": "string", "maxLength": 120 },
+        "doctorName": { "type": "string", "maxLength": 120 },
+        "department": { "type": "string", "maxLength": 100 },
+        "date": { "type": "string", "maxLength": 30 },
+        "timeSlot": { "type": "string", "maxLength": 30 },
+        "reason": { "type": "string", "maxLength": 500 },
+        "triagePriority": { "type": "string", "enum": ["critical", "urgent", "standard"] },
+        "status": { "type": "string", "enum": ["scheduled", "in_progress", "completed", "cancelled"] },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientName", "doctorName", "department", "date", "status", "createdBy"]
+    },
+    "LabTest": {
+      "title": "LabTest",
+      "description": "Diagnostic laboratory test requisition and results",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string", "maxLength": 100 },
+        "patientName": { "type": "string", "maxLength": 120 },
+        "testName": { "type": "string", "maxLength": 120 },
+        "category": { "type": "string", "enum": ["Hematology", "Parasitology", "Biochemistry", "Microbiology", "Imaging", "Urinalysis"] },
+        "status": { "type": "string", "enum": ["pending", "processing", "completed", "critical_flag"] },
+        "orderedBy": { "type": "string", "maxLength": 120 },
+        "performedBy": { "type": "string", "maxLength": 120 },
+        "resultValue": { "type": "string", "maxLength": 500 },
+        "normalRange": { "type": "string", "maxLength": 100 },
+        "interpretation": { "type": "string", "maxLength": 500 },
+        "isAbnormal": { "type": "boolean" },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientName", "testName", "category", "status", "orderedBy", "createdBy"]
+    },
+    "TriageEntry": {
+      "title": "TriageEntry",
+      "description": "24/7 Emergency triage assessment and vitals",
+      "type": "object",
+      "properties": {
+        "patientName": { "type": "string", "maxLength": 120 },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "maxLength": 20 },
+        "priority": { "type": "string", "enum": ["P1_Immediate", "P2_Urgent", "P3_Delayed", "P4_Minor"] },
+        "chiefComplaint": { "type": "string", "maxLength": 400 },
+        "systolicBP": { "type": "number" },
+        "diastolicBP": { "type": "number" },
+        "heartRate": { "type": "number" },
+        "spo2": { "type": "number" },
+        "temperature": { "type": "number" },
+        "respiratoryRate": { "type": "number" },
+        "painScale": { "type": "number" },
+        "status": { "type": "string", "enum": ["waiting", "attending", "transferred_ward", "discharged"] },
+        "bedAssigned": { "type": "string", "maxLength": 50 },
+        "nurseInCharge": { "type": "string", "maxLength": 100 },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientName", "priority", "chiefComplaint", "status", "createdBy"]
+    },
+    "HospitalBed": {
+      "title": "HospitalBed",
+      "description": "Inpatient ward and bed status",
+      "type": "object",
+      "properties": {
+        "ward": { "type": "string", "maxLength": 50 },
+        "bedNumber": { "type": "string", "maxLength": 20 },
+        "isOccupied": { "type": "boolean" },
+        "patientId": { "type": "string", "maxLength": 100 },
+        "patientName": { "type": "string", "maxLength": 120 },
+        "admissionDate": { "type": "string", "maxLength": 50 },
+        "condition": { "type": "string", "enum": ["stable", "critical", "improving", "observation"] },
+        "assignedNurse": { "type": "string", "maxLength": 100 },
+        "updatedBy": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["ward", "bedNumber", "isOccupied"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "UserProfile" },
+      "description": "User profile collection"
+    },
+    "/patients/{patientId}": {
+      "schema": { "$ref": "Patient" },
+      "description": "Hospital patients registry"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": { "$ref": "Appointment" },
+      "description": "Medical consultations and appointment bookings"
+    },
+    "/lab_tests/{testId}": {
+      "schema": { "$ref": "LabTest" },
+      "description": "Laboratory diagnostic orders and results"
+    },
+    "/triage_queue/{triageId}": {
+      "schema": { "$ref": "TriageEntry" },
+      "description": "24/7 Emergency triage and patient monitoring"
+    },
+    "/hospital_beds/{bedId}": {
+      "schema": { "$ref": "HospitalBed" },
+      "description": "Hospital ward and bed occupancy tracking"
+    }
+  }
+}
